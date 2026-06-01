@@ -1,13 +1,16 @@
 const taskInput = document.getElementById("taskInput");
 const addBtn = document.getElementById("addBtn");
 const taskList = document.getElementById("taskList");
+const taskCount = document.getElementById("taskCount");
 
-// Load tasks when page opens
-document.addEventListener("DOMContentLoaded", loadTasks);
+document.addEventListener("DOMContentLoaded", () => {
+    loadTasks();
+    updateTaskCount();
+});
 
 addBtn.addEventListener("click", addTask);
 
-taskInput.addEventListener("keypress", function (e) {
+taskInput.addEventListener("keypress", (e) => {
     if (e.key === "Enter") {
         addTask();
     }
@@ -31,12 +34,20 @@ function addTask() {
 
     taskInput.value = "";
     taskInput.focus();
+
+    updateTaskCount();
 }
 
 function createTaskElement(task) {
     const li = document.createElement("li");
     li.classList.add("task-item");
 
+    // Checkbox
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = task.completed;
+
+    // Task text
     const span = document.createElement("span");
     span.classList.add("task-text");
     span.textContent = task.text;
@@ -45,11 +56,12 @@ function createTaskElement(task) {
         span.classList.add("completed");
     }
 
-    span.addEventListener("click", () => {
+    checkbox.addEventListener("change", () => {
         span.classList.toggle("completed");
         updateTasks();
     });
 
+    // Delete button
     const deleteBtn = document.createElement("button");
     deleteBtn.textContent = "Delete";
     deleteBtn.classList.add("delete-btn");
@@ -57,16 +69,21 @@ function createTaskElement(task) {
     deleteBtn.addEventListener("click", () => {
         li.remove();
         updateTasks();
+        updateTaskCount();
     });
 
+    li.appendChild(checkbox);
     li.appendChild(span);
     li.appendChild(deleteBtn);
+
     taskList.appendChild(li);
 }
 
 function saveTask(task) {
     const tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
     tasks.push(task);
+
     localStorage.setItem("tasks", JSON.stringify(tasks));
 }
 
@@ -84,9 +101,14 @@ function updateTasks() {
     document.querySelectorAll(".task-item").forEach(item => {
         tasks.push({
             text: item.querySelector(".task-text").textContent,
-            completed: item.querySelector(".task-text").classList.contains("completed")
+            completed: item.querySelector('input[type="checkbox"]').checked
         });
     });
 
     localStorage.setItem("tasks", JSON.stringify(tasks));
+}
+
+function updateTaskCount() {
+    const count = document.querySelectorAll(".task-item").length;
+    taskCount.textContent = `Total Tasks: ${count}`;
 }
